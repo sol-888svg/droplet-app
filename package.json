@@ -1,0 +1,12 @@
+{
+  "name": "droplet-push",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "vapid:generate": "web-push generate-vapid-keys"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.34.0",
+    "web-push": "^3.6.7"
+  }
+}

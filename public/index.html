@@ -1,0 +1,1006 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Droplet</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Silkscreen:wght@400;700&display=swap">
+<style>
+html,body{ height:100%; margin:0; }
+:root{
+  color-scheme: light;
+  --bg: #F0F0EE;
+  --bg-dot: rgba(20,20,20,.07);
+  --surface: #FFFFFF;
+  --surface-2: #E7E7E4;
+  --ink: #141414;
+  --muted: #74746F;
+  --accent: #E0102A;
+  --accent-ink: #FFFFFF;
+  --ring-track: #DBDBD7;
+  --warn: #B5750B;
+  --border: #D2D2CD;
+  --shadow: none;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg: #000000;
+    --bg-dot: rgba(255,255,255,.09);
+    --surface: #0D0D0D;
+    --surface-2: #191919;
+    --ink: #F5F5F0;
+    --muted: #8A8A85;
+    --accent: #FF1E3C;
+    --accent-ink: #0A0A0A;
+    --ring-track: #232323;
+    --warn: #E3A15C;
+    --border: #2A2A2A;
+    --shadow: none;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg: #000000;
+  --bg-dot: rgba(255,255,255,.09);
+  --surface: #0D0D0D;
+  --surface-2: #191919;
+  --ink: #F5F5F0;
+  --muted: #8A8A85;
+  --accent: #FF1E3C;
+  --accent-ink: #0A0A0A;
+  --ring-track: #232323;
+  --warn: #E3A15C;
+  --border: #2A2A2A;
+  --shadow: none;
+}
+
+*{box-sizing:border-box;}
+body{
+  background:
+    radial-gradient(circle, var(--bg-dot) 1px, transparent 1.2px) 0 0 / 14px 14px,
+    var(--bg);
+  color: var(--ink);
+  font-family: "Space Mono", "JetBrains Mono", ui-monospace, monospace;
+  padding-inline: 16px;
+  padding-block: calc(20px + env(safe-area-inset-top, 0px)) calc(20px + env(safe-area-inset-bottom, 0px));
+  min-height: 100%;
+  display:flex;
+  justify-content:center;
+}
+.app{
+  width:100%;
+  max-width: 460px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+h1,h2,h3{ font-family:"Silkscreen", monospace; font-weight:400; text-transform:uppercase; letter-spacing:.04em; text-wrap: balance; margin:0; }
+
+/* header */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.topbar .brand{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-family:"Silkscreen", monospace;
+  font-size:1.3rem;
+  font-weight:600;
+}
+.icon-btn{
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--ink);
+  width:38px;height:38px;
+  border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  font-size:1rem;
+}
+.icon-btn:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* top-of-day progress bar */
+.progress-card{
+  background: var(--surface);
+  border:1px solid var(--border);
+  border-radius:4px;
+  box-shadow: var(--shadow);
+  padding: 14px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.progress-head{
+  display:flex; align-items:baseline; justify-content:space-between;
+}
+.progress-label{ font-size:.9rem; color:var(--muted); }
+.progress-status{ font-size:.98rem; font-weight:600; font-variant-numeric: tabular-nums; }
+.progress-track{
+  position:relative;
+  height:12px;
+  border-radius:2px;
+  background: var(--ring-track);
+  overflow:hidden;
+}
+.progress-track::after{
+  content:"";
+  position:absolute; inset:0;
+  background-image: repeating-linear-gradient(90deg, var(--surface) 0 2px, transparent 2px 11px);
+  pointer-events:none;
+}
+.progress-fill{
+  height:100%;
+  border-radius:2px;
+  background: var(--accent);
+  width:0%;
+  transition: width .5s ease;
+}
+.progress-foot{ font-size:.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.progress-foot.met{ color: var(--accent); font-weight:600; }
+
+/* ring card */
+.ring-card{
+  background: var(--surface);
+  border:1px solid var(--border);
+  border-radius:4px;
+  box-shadow: var(--shadow);
+  padding: 24px 20px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:14px;
+}
+.ring-wrap{ position:relative; width:220px; height:220px; }
+.ring-wrap svg{ width:100%; height:100%; transform: rotate(-90deg); }
+.ring-track{ stroke: var(--ring-track); stroke-dasharray: 2 6; stroke-linecap: round; }
+.ring-fill{ stroke: var(--accent); stroke-linecap: butt; transition: stroke-dashoffset .5s ease; }
+.ring-center{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:2px;
+}
+.ring-center .amount{
+  font-family:"Silkscreen", monospace;
+  font-size:2.4rem;
+  font-weight:600;
+  font-variant-numeric: tabular-nums;
+  line-height:1;
+}
+.ring-center .goal{ font-size:.85rem; color:var(--muted); font-variant-numeric: tabular-nums; }
+.ring-center .pct{ font-size:.75rem; color:var(--accent); font-weight:600; margin-top:4px; }
+
+.streak-row{
+  display:flex; gap:8px; align-items:center; color:var(--muted); font-size:.82rem;
+}
+
+/* quick add */
+.quick-add{
+  display:grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:10px;
+}
+.qa-btn{
+  background: var(--surface);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding: 12px 4px 10px;
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  cursor:pointer;
+  color:var(--ink);
+  font-family:"Silkscreen", monospace;
+  transition: transform .15s ease, background .15s ease;
+}
+.qa-btn:active{ transform: scale(.94); background: var(--surface-2); }
+.qa-btn .qa-label{ font-size:.72rem; color:var(--muted); }
+.qa-btn .qa-amt{ font-size:.85rem; font-weight:600; font-variant-numeric: tabular-nums; }
+
+.custom-row{
+  display:flex; gap:8px;
+}
+.custom-row input{
+  flex:1;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:3px;
+  padding:12px 14px;
+  font-size:.95rem;
+  color:var(--ink);
+  font-variant-numeric: tabular-nums;
+  min-width:0;
+}
+.custom-row button{
+  background: var(--accent);
+  color: var(--accent-ink);
+  border:none;
+  border-radius:3px;
+  padding: 0 20px;
+  font-weight:600;
+  cursor:pointer;
+  font-size:.95rem;
+}
+
+/* section */
+.section{
+  background: var(--surface);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:16px 18px;
+  box-shadow: var(--shadow);
+  display:flex; flex-direction:column; gap:12px;
+}
+.section-head{
+  display:flex; align-items:center; justify-content:space-between;
+}
+.section-head h2{ font-size:1.05rem; }
+.section-head .sub{ font-size:.78rem; color:var(--muted); font-family:"Silkscreen", monospace; }
+
+.log-list{ display:flex; flex-direction:column; }
+.log-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding-block:9px;
+  border-top:1px solid var(--border);
+  font-size:.9rem;
+}
+.log-row:first-child{ border-top:none; }
+.log-row .lr-left{ display:flex; align-items:center; gap:10px; color:var(--ink); }
+.log-row time{ color:var(--muted); font-variant-numeric: tabular-nums; font-size:.82rem; width:52px; }
+.log-row .amt{ font-variant-numeric: tabular-nums; font-weight:600; }
+.log-row .del{
+  background:none; border:none; color:var(--muted); cursor:pointer; font-size:.85rem; padding:4px 6px;
+}
+.log-empty{ color:var(--muted); font-size:.88rem; padding-block:6px; }
+
+/* reminder settings */
+.field-row{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.field-row .flabel{ font-size:.92rem; }
+.field-row .fhint{ font-size:.76rem; color:var(--muted); }
+.switch{
+  position:relative; width:46px; height:27px; flex:none;
+}
+.switch input{ position:absolute; inset:0; opacity:0; margin:0; cursor:pointer; }
+.switch .track{
+  position:absolute; inset:0; background: var(--ring-track); border-radius:999px; transition: background .2s;
+}
+.switch .thumb{
+  position:absolute; top:3px; left:3px; width:21px; height:21px; border-radius:50%;
+  background: var(--surface); box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  transition: transform .2s;
+}
+.switch input:checked + .track{ background: var(--accent); }
+.switch input:checked ~ .thumb{ transform: translateX(19px); }
+
+.time-chips{ display:flex; flex-wrap:wrap; gap:8px; }
+.time-chip{
+  border:1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--muted);
+  border-radius:3px;
+  padding: 7px 14px;
+  font-size:.85rem;
+  font-variant-numeric: tabular-nums;
+  cursor:pointer;
+  font-family:"Silkscreen", monospace;
+}
+.time-chip.on{
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight:600;
+}
+
+.stepper{ display:flex; align-items:center; gap:8px; }
+.stepper button{
+  width:30px; height:30px; border-radius:3px; border:1px solid var(--border);
+  background: var(--surface-2); color:var(--ink); font-size:1rem; cursor:pointer;
+}
+.stepper .val{ min-width:52px; text-align:center; font-variant-numeric: tabular-nums; font-weight:600; }
+
+.push-btn{
+  width:100%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border:none;
+  border-radius:3px;
+  padding: 12px;
+  font-weight:600;
+  font-size:.9rem;
+  cursor:pointer;
+  font-family:"Silkscreen", monospace;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+}
+.push-btn[disabled]{ opacity:.5; cursor:default; }
+.push-status{ font-size:.76rem; color:var(--muted); text-align:center; }
+
+.reminder-toast{
+  position: fixed;
+  left:16px; right:16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  max-width: 428px;
+  margin-inline:auto;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-radius:4px;
+  padding:14px 16px;
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  box-shadow: var(--shadow);
+  transform: translateY(120%);
+  transition: transform .3s ease;
+  z-index:20;
+}
+.reminder-toast.show{ transform: translateY(0); }
+.reminder-toast .rt-text{ font-size:.9rem; font-weight:600; }
+.reminder-toast .rt-actions{ display:flex; gap:8px; }
+.reminder-toast button{
+  border:none; border-radius:3px; padding:7px 12px; font-size:.82rem; font-weight:600; cursor:pointer;
+}
+.reminder-toast .rt-log{ background: var(--accent-ink); color: var(--accent); }
+.reminder-toast .rt-dismiss{ background: rgba(255,255,255,.25); color: var(--accent-ink); }
+
+.footer-note{
+  text-align:center; font-size:.74rem; color: var(--muted); padding-block: 6px 2px;
+}
+
+/* calendar */
+.cal-nav{
+  display:flex; align-items:center; gap:10px;
+}
+.cal-nav .cal-month{ font-family:"Silkscreen", monospace; font-size:1rem; font-weight:600; min-width:132px; text-align:center; }
+.cal-grid{
+  display:grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap:6px;
+}
+.cal-dow{
+  text-align:center; font-size:.68rem; color:var(--muted); font-weight:600; letter-spacing:.03em;
+}
+.cal-day{
+  aspect-ratio: 1;
+  border-radius:3px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background: var(--surface-2);
+  border:1px solid transparent;
+  font-size:.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  cursor:pointer;
+  position:relative;
+}
+.cal-day.empty{ visibility:hidden; cursor:default; }
+.cal-day.today{ border-color: var(--accent); }
+.cal-day .cal-num{ font-weight:600; }
+.cal-day .cal-dot{
+  width:6px; height:6px; border-radius:50%; margin-top:3px; background: transparent;
+}
+.cal-day.has-some .cal-dot{ background: var(--warn); }
+.cal-day.has-met .cal-dot{ background: var(--accent); }
+.cal-legend{
+  display:flex; gap:14px; font-size:.72rem; color:var(--muted); align-items:center;
+}
+.cal-legend span{ display:flex; align-items:center; gap:5px; }
+.cal-legend .dot{ width:8px; height:8px; border-radius:50%; }
+.cal-legend .dot.met{ background: var(--accent); }
+.cal-legend .dot.some{ background: var(--warn); }
+
+.day-modal{
+  position: fixed; inset:0;
+  background: rgba(8,20,22,.45);
+  display:flex; align-items:flex-end; justify-content:center;
+  z-index: 30;
+  opacity:0; pointer-events:none;
+  transition: opacity .2s ease;
+}
+.day-modal.show{ opacity:1; pointer-events:auto; }
+.day-modal .sheet{
+  width:100%; max-width:460px;
+  background: var(--surface);
+  border-radius: 4px 4px 0 0;
+  padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+  transform: translateY(20px);
+  transition: transform .2s ease;
+  max-height: 70vh;
+  overflow-y:auto;
+}
+.day-modal.show .sheet{ transform: translateY(0); }
+.day-modal .sheet-head{
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;
+}
+.day-modal .sheet-head h3{ font-size:1.05rem; }
+.day-modal .sheet-close{
+  border:none; background:var(--surface-2); color:var(--ink); width:30px; height:30px; border-radius:3px; cursor:pointer;
+}
+.day-modal .sheet-total{ font-size:.85rem; color:var(--muted); margin-bottom:10px; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 380px){
+  .quick-add{ grid-template-columns: repeat(2, 1fr); }
+}
+
+.icon{ width:1em; height:1em; display:inline-block; vertical-align:-0.14em; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+.qa-icon .icon{ width:22px; height:22px; }
+.brand .icon{ width:20px; height:20px; stroke-width:1.8; color: var(--accent); }
+.streak-row .icon{ width:15px; height:15px; color: var(--warn); }
+.rt-text .icon{ width:16px; height:16px; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-droplet" viewBox="0 0 24 24"><path d="M12 2.5C9 7 5.5 11.2 5.5 15a6.5 6.5 0 0 0 13 0C18.5 11.2 15 7 12 2.5Z"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 2s-1 3-3.5 5.5C6 10 5 12 5 14.5a7 7 0 0 0 14 0c0-2-1-3.5-2-5 0 2-1 3-2 3 0-3-1-6-3-10.5Z"/></symbol>
+    <symbol id="i-glass" viewBox="0 0 24 24"><path d="M7 3h10l-1.2 16.2A2 2 0 0 1 13.8 21h-3.6a2 2 0 0 1-2-1.8L7 3Z"/><path d="M7.6 9h8.8"/></symbol>
+    <symbol id="i-bottle" viewBox="0 0 24 24"><path d="M10 2h4v3.2c1.4.8 2 1.9 2 3.3V20a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V8.5c0-1.4.6-2.5 2-3.3V2Z"/><path d="M8.5 13h7"/></symbol>
+    <symbol id="i-cup" viewBox="0 0 24 24"><path d="M5 8h11v8a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V8Z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/></symbol>
+    <symbol id="i-jug" viewBox="0 0 24 24"><path d="M6 4h9l1.5 3.5L18 10v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4Z"/><path d="M6 11h4"/></symbol>
+    <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0v4.5l1.5 3H4.5L6 13.5V9Z"/><path d="M10 19a2 2 0 0 0 4 0"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <div class="topbar">
+    <div class="brand"><svg class="icon"><use href="#i-droplet"/></svg> DROPLET</div>
+    <button class="icon-btn" id="unitBtn" title="Toggle units" aria-label="Toggle units">ml</button>
+  </div>
+
+  <div class="progress-card">
+    <div class="progress-head">
+      <span class="progress-label">Today</span>
+      <span class="progress-status" id="progressStatus">0 ml logged</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-foot" id="progressFoot">3000 ml to go</div>
+  </div>
+
+  <div class="ring-card">
+    <div class="ring-wrap">
+      <svg viewBox="0 0 220 220">
+        <circle class="ring-track" cx="110" cy="110" r="94" fill="none" stroke-width="16"/>
+        <circle class="ring-fill" id="ringFill" cx="110" cy="110" r="94" fill="none" stroke-width="16"
+          stroke-dasharray="590.6" stroke-dashoffset="590.6"/>
+      </svg>
+      <div class="ring-center">
+        <div class="amount" id="amountText">0</div>
+        <div class="goal" id="goalText">of 3000 ml</div>
+        <div class="pct" id="pctText">0%</div>
+      </div>
+    </div>
+    <div class="streak-row"><svg class="icon"><use href="#i-flame"/></svg> <span id="streakText">0-DAY STREAK</span></div>
+  </div>
+
+  <div class="quick-add">
+    <button class="qa-btn" data-amt="750">
+      <span class="qa-icon"><svg class="icon"><use href="#i-bottle"/></svg></span>
+      <span class="qa-amt">750 ml</span>
+      <span class="qa-label">My bottle</span>
+    </button>
+    <button class="qa-btn" data-amt="250">
+      <span class="qa-icon"><svg class="icon"><use href="#i-glass"/></svg></span>
+      <span class="qa-amt">250 ml</span>
+      <span class="qa-label">Glass</span>
+    </button>
+    <button class="qa-btn" data-amt="500">
+      <span class="qa-icon"><svg class="icon"><use href="#i-cup"/></svg></span>
+      <span class="qa-amt">500 ml</span>
+      <span class="qa-label">Half L</span>
+    </button>
+    <button class="qa-btn" data-amt="1000">
+      <span class="qa-icon"><svg class="icon"><use href="#i-jug"/></svg></span>
+      <span class="qa-amt">1 L</span>
+      <span class="qa-label">Large</span>
+    </button>
+  </div>
+
+  <div class="custom-row">
+    <input id="customAmt" type="number" inputmode="numeric" min="1" placeholder="Custom amount (ml)">
+    <button id="customAdd">Add</button>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h2>TODAY'S LOG</h2>
+      <span class="sub" id="logCount">0 entries</span>
+    </div>
+    <div class="log-list" id="logList">
+      <div class="log-empty">Nothing logged yet today — tap a glass above.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h2>CALENDAR</h2>
+      <div class="cal-nav">
+        <button class="icon-btn" id="calPrev" aria-label="Previous month"><svg class="icon"><use href="#i-chevron-left"/></svg></button>
+        <span class="cal-month" id="calMonthLabel">September 2026</span>
+        <button class="icon-btn" id="calNext" aria-label="Next month"><svg class="icon"><use href="#i-chevron-right"/></svg></button>
+      </div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-legend">
+      <span><span class="dot met"></span> Goal met</span>
+      <span><span class="dot some"></span> Some logged</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2>PUSH NOTIFICATIONS</h2></div>
+    <button class="push-btn" id="pushEnableBtn">Enable push reminders</button>
+    <div class="push-status" id="pushStatus">Sends real notifications at 10, 12, 15, 17, 20 — even when the app is closed.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2>IN-APP REMINDERS</h2></div>
+    <div class="field-row">
+      <div>
+        <div class="flabel">Notify me to drink</div>
+        <div class="fhint" id="remStatus">Off</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="remToggle">
+        <span class="track"></span>
+        <span class="thumb"></span>
+      </label>
+    </div>
+    <div class="field-row">
+      <div class="flabel">At</div>
+    </div>
+    <div class="time-chips" id="timeChips"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2>DAILY GOAL</h2></div>
+    <div class="field-row">
+      <div class="flabel">Target</div>
+      <div class="stepper">
+        <button id="goalDown" aria-label="Decrease goal"><svg class="icon"><use href="#i-minus"/></svg></button>
+        <div class="val"><span id="goalVal">3000</span> <span id="goalUnitLabel">ml</span></div>
+        <button id="goalUp" aria-label="Increase goal"><svg class="icon"><use href="#i-plus"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">Data is kept on this device. Push reminders fire at 10, 12, 15, 17, and 20 daily.</div>
+</div>
+
+<div class="reminder-toast" id="toast">
+  <span class="rt-text"><svg class="icon"><use href="#i-droplet"/></svg> TIME FOR WATER</span>
+  <div class="rt-actions">
+    <button class="rt-log" id="toastLog">Log a glass</button>
+    <button class="rt-dismiss" id="toastDismiss">Snooze</button>
+  </div>
+</div>
+
+<div class="day-modal" id="dayModal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h3 id="sheetDate">Day</h3>
+      <button class="sheet-close" id="sheetClose" aria-label="Close"><svg class="icon"><use href="#i-close"/></svg></button>
+    </div>
+    <div class="sheet-total" id="sheetTotal">0 ml logged</div>
+    <div class="log-list" id="sheetLog"></div>
+  </div>
+</div>
+
+<script>
+// ====== PASTE YOUR VAPID PUBLIC KEY HERE (step 4 of the guide) ======
+var VAPID_PUBLIC_KEY = "BLEIoDtgAaclnMteLGyd0iv0J2P3pK-9TGF-WBZZ-eSc43Ax8gqP6-hlwDVwi3gOyKBkGuspiWmi49k7YALvE";
+// =====================================================================
+
+(function(){
+  var STORE_KEY = "droplet_state_v1";
+  var RING_CIRC = 2 * Math.PI * 94;
+
+  function todayKey(d){
+    d = d || new Date();
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+
+  function loadState(){
+    var fallback = {
+      goal: 3000,
+      unit: "ml",
+      reminders: false,
+      reminderTimes: [10, 12, 15, 17, 20],
+      firedToday: {},
+      days: {},
+      streak: 0
+    };
+    try{
+      var raw = localStorage.getItem(STORE_KEY);
+      if(!raw) return fallback;
+      var parsed = JSON.parse(raw);
+      return Object.assign(fallback, parsed);
+    }catch(e){
+      return fallback;
+    }
+  }
+
+  function saveState(){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){}
+  }
+
+  var state = loadState();
+
+  var els = {
+    amount: document.getElementById("amountText"),
+    goalText: document.getElementById("goalText"),
+    pct: document.getElementById("pctText"),
+    ring: document.getElementById("ringFill"),
+    streak: document.getElementById("streakText"),
+    logList: document.getElementById("logList"),
+    logCount: document.getElementById("logCount"),
+    customAmt: document.getElementById("customAmt"),
+    customAdd: document.getElementById("customAdd"),
+    unitBtn: document.getElementById("unitBtn"),
+    remToggle: document.getElementById("remToggle"),
+    remStatus: document.getElementById("remStatus"),
+    timeChips: document.getElementById("timeChips"),
+    progressFill: document.getElementById("progressFill"),
+    progressStatus: document.getElementById("progressStatus"),
+    progressFoot: document.getElementById("progressFoot"),
+    goalVal: document.getElementById("goalVal"),
+    goalUnitLabel: document.getElementById("goalUnitLabel"),
+    goalUp: document.getElementById("goalUp"),
+    goalDown: document.getElementById("goalDown"),
+    toast: document.getElementById("toast"),
+    toastLog: document.getElementById("toastLog"),
+    toastDismiss: document.getElementById("toastDismiss"),
+    calGrid: document.getElementById("calGrid"),
+    calMonthLabel: document.getElementById("calMonthLabel"),
+    calPrev: document.getElementById("calPrev"),
+    calNext: document.getElementById("calNext"),
+    dayModal: document.getElementById("dayModal"),
+    sheetDate: document.getElementById("sheetDate"),
+    sheetTotal: document.getElementById("sheetTotal"),
+    sheetLog: document.getElementById("sheetLog"),
+    sheetClose: document.getElementById("sheetClose"),
+    pushEnableBtn: document.getElementById("pushEnableBtn"),
+    pushStatus: document.getElementById("pushStatus"),
+  };
+
+  var calCursor = new Date();
+  var MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  var DOW = ["S","M","T","W","T","F","S"];
+
+  function todaysEntries(){
+    var k = todayKey();
+    if(!state.days[k]) state.days[k] = [];
+    return state.days[k];
+  }
+
+  function computeStreak(){
+    var streak = 0;
+    var d = new Date();
+    for(var i=0; i<400; i++){
+      var k = todayKey(d);
+      var entries = state.days[k];
+      var total = entries ? entries.reduce(function(s,e){return s+e.amt;},0) : 0;
+      if(i===0){
+        if(total >= state.goal){ streak = 1; } else { break; }
+      } else {
+        if(total >= state.goal){ streak++; } else break;
+      }
+      d.setDate(d.getDate()-1);
+    }
+    return streak;
+  }
+
+  function render(){
+    var entries = todaysEntries();
+    var total = entries.reduce(function(s,e){return s+e.amt;},0);
+    var pct = Math.max(0, Math.min(1, total / state.goal));
+
+    els.amount.textContent = total;
+    els.goalText.textContent = "of " + state.goal + " " + state.unit;
+    els.pct.textContent = Math.round(pct*100) + "%";
+    els.ring.setAttribute("stroke-dasharray", RING_CIRC.toFixed(1));
+    els.ring.setAttribute("stroke-dashoffset", (RING_CIRC * (1-pct)).toFixed(1));
+
+    els.progressFill.style.width = (pct*100) + "%";
+    els.progressStatus.textContent = total + " " + state.unit + " logged";
+    if(total >= state.goal){
+      els.progressFoot.textContent = "GOAL REACHED — " + (total - state.goal) + " " + state.unit + " OVER";
+      els.progressFoot.classList.add("met");
+    } else {
+      els.progressFoot.textContent = (state.goal - total) + " " + state.unit + " to go";
+      els.progressFoot.classList.remove("met");
+    }
+
+    var streak = computeStreak();
+    els.streak.textContent = streak + "-DAY STREAK";
+
+    els.logCount.textContent = entries.length + (entries.length===1 ? " entry" : " entries");
+    if(entries.length === 0){
+      els.logList.innerHTML = '<div class="log-empty">Nothing logged yet today — tap a glass above.</div>';
+    } else {
+      var sorted = entries.slice().sort(function(a,b){ return b.t - a.t; });
+      els.logList.innerHTML = sorted.map(function(e){
+        var d = new Date(e.t);
+        var hh = d.getHours(), mm = d.getMinutes();
+        var ampm = hh >= 12 ? "PM" : "AM";
+        var h12 = hh % 12 || 12;
+        var timeStr = h12 + ":" + String(mm).padStart(2,"0") + " " + ampm;
+        return '<div class="log-row" data-id="'+e.t+'">'
+          + '<div class="lr-left"><time>'+timeStr+'</time><span>'+e.amt+' '+state.unit+'</span></div>'
+          + '<span class="amt">+'+e.amt+'</span>'
+          + '<button class="del" data-id="'+e.t+'" aria-label="Delete entry"><svg class="icon"><use href="#i-close"/></svg></button>'
+          + '</div>';
+      }).join("");
+    }
+
+    els.unitBtn.textContent = state.unit;
+    els.remToggle.checked = state.reminders;
+    els.remStatus.textContent = state.reminders
+      ? ("At " + state.reminderTimes.slice().sort(function(a,b){return a-b;}).map(fmtHour).join(", "))
+      : "Off";
+    els.goalVal.textContent = state.goal;
+    els.goalUnitLabel.textContent = state.unit;
+
+    renderTimeChips();
+    renderCalendar();
+  }
+
+  function fmtHour(h){
+    var ampm = h >= 12 ? "PM" : "AM";
+    var h12 = h % 12 || 12;
+    return h12 + " " + ampm;
+  }
+
+  var ALL_REMINDER_HOURS = [10, 12, 15, 17, 20];
+
+  function renderTimeChips(){
+    els.timeChips.innerHTML = ALL_REMINDER_HOURS.map(function(h){
+      var on = state.reminderTimes.indexOf(h) > -1;
+      return '<button class="time-chip'+(on ? ' on' : '')+'" data-hour="'+h+'">'+fmtHour(h)+'</button>';
+    }).join("");
+  }
+
+  function dayTotal(key){
+    var entries = state.days[key];
+    return entries ? entries.reduce(function(s,e){return s+e.amt;},0) : 0;
+  }
+
+  function renderCalendar(){
+    var y = calCursor.getFullYear(), m = calCursor.getMonth();
+    els.calMonthLabel.textContent = MONTH_NAMES[m] + " " + y;
+
+    var firstDow = new Date(y, m, 1).getDay();
+    var daysInMonth = new Date(y, m+1, 0).getDate();
+    var todayStr = todayKey();
+
+    var html = DOW.map(function(d){ return '<div class="cal-dow">'+d+'</div>'; }).join("");
+    for(var i=0;i<firstDow;i++){ html += '<div class="cal-day empty"></div>'; }
+
+    for(var day=1; day<=daysInMonth; day++){
+      var key = y + "-" + String(m+1).padStart(2,"0") + "-" + String(day).padStart(2,"0");
+      var total = dayTotal(key);
+      var cls = "cal-day";
+      if(key === todayStr) cls += " today";
+      if(total > 0 && total < state.goal) cls += " has-some";
+      if(total >= state.goal) cls += " has-met";
+      html += '<div class="'+cls+'" data-key="'+key+'"><span class="cal-num">'+day+'</span><span class="cal-dot"></span></div>';
+    }
+    els.calGrid.innerHTML = html;
+  }
+
+  function openDay(key){
+    var entries = (state.days[key] || []).slice().sort(function(a,b){ return b.t - a.t; });
+    var total = dayTotal(key);
+    var parts = key.split("-");
+    var d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+    els.sheetDate.textContent = d.toLocaleDateString(undefined, { weekday:"long", month:"long", day:"numeric" });
+    els.sheetTotal.textContent = total + " " + state.unit + " logged · goal " + state.goal + " " + state.unit;
+    if(entries.length === 0){
+      els.sheetLog.innerHTML = '<div class="log-empty">Nothing logged this day.</div>';
+    } else {
+      els.sheetLog.innerHTML = entries.map(function(e){
+        var ed = new Date(e.t);
+        var hh = ed.getHours(), mm = ed.getMinutes();
+        var ampm = hh >= 12 ? "PM" : "AM";
+        var h12 = hh % 12 || 12;
+        var timeStr = h12 + ":" + String(mm).padStart(2,"0") + " " + ampm;
+        return '<div class="log-row"><div class="lr-left"><time>'+timeStr+'</time></div><span class="amt">+'+e.amt+' '+state.unit+'</span></div>';
+      }).join("");
+    }
+    els.dayModal.classList.add("show");
+  }
+
+  els.calGrid.addEventListener("click", function(ev){
+    var cell = ev.target.closest(".cal-day");
+    if(cell && !cell.classList.contains("empty")){ openDay(cell.getAttribute("data-key")); }
+  });
+  els.calPrev.addEventListener("click", function(){ calCursor.setMonth(calCursor.getMonth()-1); renderCalendar(); });
+  els.calNext.addEventListener("click", function(){ calCursor.setMonth(calCursor.getMonth()+1); renderCalendar(); });
+  els.sheetClose.addEventListener("click", function(){ els.dayModal.classList.remove("show"); });
+  els.dayModal.addEventListener("click", function(ev){ if(ev.target === els.dayModal){ els.dayModal.classList.remove("show"); } });
+
+  function addEntry(amt){
+    amt = Math.round(amt);
+    if(!amt || amt <= 0) return;
+    var entries = todaysEntries();
+    entries.push({ t: Date.now(), amt: amt });
+    saveState();
+    render();
+  }
+
+  function removeEntry(id){
+    var entries = todaysEntries();
+    var idx = entries.findIndex(function(e){ return String(e.t) === String(id); });
+    if(idx > -1){ entries.splice(idx,1); saveState(); render(); }
+  }
+
+  document.querySelectorAll(".qa-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){ addEntry(parseFloat(btn.getAttribute("data-amt"))); });
+  });
+
+  els.customAdd.addEventListener("click", function(){
+    var v = parseFloat(els.customAmt.value);
+    if(v > 0){ addEntry(v); els.customAmt.value = ""; }
+  });
+  els.customAmt.addEventListener("keydown", function(ev){ if(ev.key === "Enter"){ els.customAdd.click(); } });
+
+  els.logList.addEventListener("click", function(ev){
+    var btn = ev.target.closest(".del");
+    if(btn){ removeEntry(btn.getAttribute("data-id")); }
+  });
+
+  els.unitBtn.addEventListener("click", function(){
+    state.unit = state.unit === "ml" ? "oz" : "ml";
+    if(state.unit === "oz" && state.goal > 300){ state.goal = Math.round(state.goal / 29.57); }
+    else if(state.unit === "ml" && state.goal < 300){ state.goal = Math.round(state.goal * 29.57); }
+    saveState(); render();
+  });
+
+  els.goalUp.addEventListener("click", function(){ state.goal += (state.unit === "ml" ? 250 : 8); saveState(); render(); });
+  els.goalDown.addEventListener("click", function(){
+    var step = state.unit === "ml" ? 250 : 8;
+    state.goal = Math.max(step, state.goal - step);
+    saveState(); render();
+  });
+
+  els.timeChips.addEventListener("click", function(ev){
+    var chip = ev.target.closest(".time-chip");
+    if(!chip) return;
+    var h = parseInt(chip.getAttribute("data-hour"));
+    var idx = state.reminderTimes.indexOf(h);
+    if(idx > -1){ state.reminderTimes.splice(idx,1); } else { state.reminderTimes.push(h); }
+    saveState(); render();
+  });
+
+  // in-app fallback reminders (only fire while this tab is open)
+  var reminderTimer = null;
+  var toastTimer = null;
+
+  function showToast(){
+    els.toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ els.toast.classList.remove("show"); }, 15000);
+  }
+
+  els.toastLog.addEventListener("click", function(){ addEntry(750); els.toast.classList.remove("show"); });
+  els.toastDismiss.addEventListener("click", function(){ els.toast.classList.remove("show"); });
+
+  function checkReminders(){
+    if(!state.reminders) return;
+    var now = new Date();
+    var key = todayKey(now);
+    if(!state.firedToday[key]) state.firedToday[key] = [];
+    var h = now.getHours();
+    if(state.reminderTimes.indexOf(h) > -1 && state.firedToday[key].indexOf(h) === -1){
+      state.firedToday[key].push(h);
+      saveState();
+      showToast();
+    }
+  }
+
+  function scheduleReminder(){
+    if(reminderTimer){ clearInterval(reminderTimer); reminderTimer = null; }
+    if(!state.reminders) return;
+    checkReminders();
+    reminderTimer = setInterval(checkReminders, 60 * 1000);
+  }
+
+  els.remToggle.addEventListener("change", function(){
+    state.reminders = els.remToggle.checked;
+    saveState(); render(); scheduleReminder();
+  });
+
+  render();
+  scheduleReminder();
+
+  window.addEventListener("keydown", function(ev){
+    if(ev.key === "Escape"){ els.toast.classList.remove("show"); els.dayModal.classList.remove("show"); }
+  });
+
+  // ---------------- PUSH NOTIFICATIONS ----------------
+  function urlBase64ToUint8Array(base64String){
+    var padding = "=".repeat((4 - base64String.length % 4) % 4);
+    var base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    var rawData = window.atob(base64);
+    var outputArray = new Uint8Array(rawData.length);
+    for(var i=0; i<rawData.length; ++i){ outputArray[i] = rawData.charCodeAt(i); }
+    return outputArray;
+  }
+
+  function setPushStatus(text){ els.pushStatus.textContent = text; }
+
+  async function registerServiceWorker(){
+    if(!("serviceWorker" in navigator)) return null;
+    return navigator.serviceWorker.register("/sw.js");
+  }
+
+  async function refreshPushUI(){
+    if(!("serviceWorker" in navigator) || !("PushManager" in window)){
+      els.pushEnableBtn.disabled = true;
+      setPushStatus("Push isn't supported in this browser. Add to Home Screen from Safari/Chrome first.");
+      return;
+    }
+    var reg = await navigator.serviceWorker.ready.catch(function(){ return null; });
+    var existing = reg ? await reg.pushManager.getSubscription() : null;
+    if(existing){
+      els.pushEnableBtn.textContent = "Push reminders enabled";
+      els.pushEnableBtn.disabled = true;
+      setPushStatus("You'll get real notifications at 10, 12, 15, 17, 20 — even with the app closed.");
+    } else {
+      els.pushEnableBtn.textContent = "Enable push reminders";
+      els.pushEnableBtn.disabled = false;
+      setPushStatus("Sends real notifications at 10, 12, 15, 17, 20 — even when the app is closed.");
+    }
+  }
+
+  els.pushEnableBtn.addEventListener("click", async function(){
+    if(VAPID_PUBLIC_KEY.indexOf("REPLACE_WITH") === 0){
+      setPushStatus("Set VAPID_PUBLIC_KEY in index.html first (see the setup guide, step 4).");
+      return;
+    }
+    try{
+      var reg = await registerServiceWorker();
+      var permission = await Notification.requestPermission();
+      if(permission !== "granted"){
+        setPushStatus("Notifications were blocked. Enable them in your browser/site settings and try again.");
+        return;
+      }
+      var sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+      var res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(sub)
+      });
+      if(!res.ok) throw new Error("subscribe failed");
+      await refreshPushUI();
+    } catch(err){
+      console.error(err);
+      setPushStatus("Couldn't enable push: " + (err && err.message ? err.message : err));
+    }
+  });
+
+  registerServiceWorker().then(refreshPushUI);
+})();
+</script>
+</body>
+</html>
