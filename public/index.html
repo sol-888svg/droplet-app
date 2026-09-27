@@ -341,10 +341,12 @@ h1,h2,h3{ font-family:"Silkscreen", monospace; font-weight:400; text-transform:u
   display:flex; align-items:center; justify-content:space-between; gap:10px;
   box-shadow: var(--shadow);
   transform: translateY(120%);
-  transition: transform .3s ease;
+  transition: transform .3s ease, visibility .3s;
+  visibility: hidden;
+  pointer-events: none;
   z-index:20;
 }
-.reminder-toast.show{ transform: translateY(0); }
+.reminder-toast.show{ transform: translateY(0); visibility: visible; pointer-events: auto; }
 .reminder-toast .rt-text{ font-size:.9rem; font-weight:600; }
 .reminder-toast .rt-actions{ display:flex; gap:8px; }
 .reminder-toast button{
@@ -605,7 +607,7 @@ h1,h2,h3{ font-family:"Silkscreen", monospace; font-weight:400; text-transform:u
 
 <script>
 // ====== PASTE YOUR VAPID PUBLIC KEY HERE (step 4 of the guide) ======
-var VAPID_PUBLIC_KEY = "BLEIoDtgAaclnMteLGyd0iv0J2P3pK-9TGF-WBZZ-eSc43Ax8gqP6-hlwDVwi3gOyKBkGuspiWmi49k7YALvE";
+var VAPID_PUBLIC_KEY = "BOQHHNkf_Fy7UWEsAQcBKNlavGAp0OeWlN7ztUGnHM3kHosWz4Yq_3U441A5iyF3LvI6FOF1k40LwDN0ceRDkPE";
 // =====================================================================
 
 (function(){
